@@ -15,3 +15,11 @@ FROM employee
 LEFT JOIN role ON role.id= employee.role_id
 LEFT JOIN department ON role.department_id = department.id
 LEFT JOIN employee as mgr on employee.id = mgr.manager_id
+
+-- add department
+
+-- add role
+
+-- add employee
+
+-- update employee role
