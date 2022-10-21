@@ -183,22 +183,22 @@ function addEmployee() {
                 })
             }
             else if (employee.managerBool === 'No') {
-                db.query(`select CONCAT(first_name, " " , last_name) as name,  id as value from employee where  manager_id is null `, (err, managerData) => {
+                db.query(`select CONCAT(first_name, " " , last_name) as name,  id as value from employee where manager_id is null `, (err, managerData) => {
                     inquirer.prompt([{
                         type: 'list',
                         name: 'manager_id',
-                        message: "What is the name of the employee's manager?",
+                        message: "What is the id of the employee's manager?",
                         choices: managerData
                     }])
-                        .then(manager => {
+                        .then(subordinate => {
                             delete employee.managerBool
 
                             let newEmp = {
                                 ...employee,
-                                manager_id: manager.manager_id
+                                ...subordinate
                             }
 
-                            db.query('INSERT INTO employee SET ?', newEmp, err => {
+                            db.query('INSERT INTO employee SET ?', newEmp, (err) => {
                                 if (err) {
                                     console.log(err)
                                 }
