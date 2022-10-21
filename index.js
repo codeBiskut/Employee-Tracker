@@ -46,14 +46,14 @@ function menu() {
 
 function viewDepartments() {
     db.query("select * from department", (err, data) => {
-        console.table(data)
+        console.table('\n', data)
         menu()
     })
 }
 
 function viewRoles() {
     db.query("select * from role", (err, data) => {
-        console.table(data)
+        console.table('\n', data)
         menu()
     })
 }
@@ -73,7 +73,7 @@ LEFT JOIN role ON role.id= employee.role_id
 LEFT JOIN department ON role.department_id=department.id
 LEFT JOIN employee as mgr ON employee.id =  mgr.manager_id
 `, (err, data) => {
-        console.table(data)
+        console.table('\n', data)
         menu()
     })
 }
@@ -93,7 +93,7 @@ function addDepartment() {
             if (err) {
                 console.log(err)
             }
-            else{
+            else {
                 console.log('added department!')
             }
             viewDepartments();
@@ -102,81 +102,114 @@ function addDepartment() {
 }
 
 function addRole() {
-    const roleAddQuestions = [
-        {
-            type: "input",
-            name: "title",
-            message: "What is the title of the role you would like to add?"
+    db.query('select name as name, id as value from department', (err, departmentData) => {
+        const roleAddQuestions = [
+            {
+                type: "input",
+                name: "title",
+                message: "What is the title of the role you would like to add?"
 
-        },
-        {
-            type:"input",
-            name:"salary",
-            message:"What is the salary of the role you would like to add?"
-        },
-        {
-            type:"input",
-            name:"department_id",
-            message:"What is the id of the department of the role you would like to add?"
-        }
-    ]
+            },
+            {
+                type: "input",
+                name: "salary",
+                message: "What is the salary of the role you would like to add?"
+            },
+            {
+                type: "list",
+                name: "department_id",
+                message: "What is the department of the role you would like to add?",
+                choices: departmentData
+            }
+        ]
 
-    inquirer.prompt(roleAddQuestions).then(role => {
-        // const parameters = [role.title, role.salary, role.department_id]
-        db.query('INSERT INTO role SET ?', role, err => {
-            if (err) {
-                console.log(err)
-            }
-            else{
-                console.log('added role!')
-            }
-            viewRoles();
+        inquirer.prompt(roleAddQuestions).then(role => {
+            // const parameters = [role.title, role.salary, role.department_id]
+            db.query('INSERT INTO role SET ?', role, err => {
+                if (err) {
+                    console.log(err)
+                }
+                else {
+                    console.log('added role!')
+                    viewRoles();
+                }
+            })
         })
-    })
+    }
+    )
 }
 
 function addEmployee() {
     db.query("select title as name, id as value from role", (er, roleData) => {
 
-        db.query(`select CONCAT(first_name, " " , last_name) as name,  id as value from employee where  manager_id is null `, (err, managerData) => {
-            const employeeAddQuestions = [
-                {
-                    type: "input",
-                    name: "first_name",
-                    message: "What is your first name?",
+        const employeeAddQuestions = [
+            {
+                type: "input",
+                name: "first_name",
+                message: "What is your first name?",
 
-                },
-                {
-                    type: "input",
-                    name: "last_name",
-                    message: "What is your last name?",
+            },
+            {
+                type: "input",
+                name: "last_name",
+                message: "What is your last name?",
 
-                },
-                {
-                    type: "list",
-                    name: "role_id",
-                    message: "Choose the following role title",
-                    choices: roleData
-                }, {
-                    type: "list",
-                    name: "manager_id",
-                    message: "Choose the following manager",
-                    choices: managerData
-                }
+            },
+            {
+                type: "list",
+                name: "role_id",
+                message: "Choose the following role title",
+                choices: roleData
+            },
+            {
+                type: "list",
+                name: "managerBool",
+                message: "Is the employee a manager?",
+                choices: ['Yes', 'No']
+            }
+        ]
 
-            ]
-            inquirer.prompt(employeeAddQuestions).then(response => {
-                const parameters = [response.first_name, response.last_name, response.role_id, response.manager_id]
-                db.query("INSERT INTO employee (first_name,last_name,role_id,manager_id)VALUES(?,?,?,?)", parameters, (err, data) => {
-                    if(err){
+        inquirer.prompt(employeeAddQuestions).then(employee => {
+            if (employee.managerBool === 'Yes') {
+                delete employee.managerBool
+                db.query("INSERT INTO employee SET ?", employee, err => {
+                    if (err) {
                         console.log(err)
                     }
-                    else{
-                        console.log('employee added!')
+                    else {
+                        console.log(employee)
+                        viewEmployees()
                     }
-                    viewEmployees()
                 })
-            })
+            }
+            else if (employee.managerBool === 'No') {
+                db.query(`select CONCAT(first_name, " " , last_name) as name,  id as value from employee where  manager_id is null `, (err, managerData) => {
+                    inquirer.prompt([{
+                        type: 'list',
+                        name: 'manager_id',
+                        message: "What is the name of the employee's manager?",
+                        choices: managerData
+                    }])
+                        .then(manager => {
+                            delete employee.managerBool
+
+                            let newEmp = {
+                                ...employee,
+                                manager_id: manager.manager_id
+                            }
+
+                            db.query('INSERT INTO employee SET ?', newEmp, err => {
+                                if (err) {
+                                    console.log(err)
+                                }
+                                else {
+                                    console.log(newEmp)
+                                    viewEmployees()
+                                }
+                            })
+                        })
+                })
+            }
         })
     })
 }
