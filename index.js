@@ -177,7 +177,7 @@ function addEmployee() {
                         console.log(err)
                     }
                     else {
-                        console.log(employee)
+                        console.log('added manager!')
                         viewEmployees()
                     }
                 })
@@ -191,6 +191,7 @@ function addEmployee() {
                         choices: managerData
                     }])
                         .then(subordinate => {
+                            console.log(subordinate.manager_id)
                             delete employee.managerBool
 
                             let newEmp = {
@@ -203,7 +204,7 @@ function addEmployee() {
                                     console.log(err)
                                 }
                                 else {
-                                    console.log(newEmp)
+                                    console.log('added employee!')
                                     viewEmployees()
                                 }
                             })
@@ -215,5 +216,35 @@ function addEmployee() {
 }
 
 function updateEmployeeRole() {
-
+    db.query(`select CONCAT(first_name, " ", last_name) as name, id as value from employee`, (err, employeeData) => {
+        db.query("select title as name, id as value from role", (err, roleData) => {
+            inquirer.prompt([
+                {
+                    type:'list',
+                    name:'id',
+                    message:'What employee do you want to update?',
+                    choices:employeeData
+                },
+                {
+                    type:'list',
+                    name:'role_id',
+                    message:'What role should the employee be updated to?',
+                    choices: roleData
+                }])
+                .then(employee =>{
+                    let newRole = {
+                        role_id:employee.role_id
+                    }
+                    db.query(`UPDATE employee SET ? WHERE id=${employee.id}`, newRole, err =>{
+                        if(err){
+                            console.log(err)
+                        }
+                        else{
+                            console.log('updated employee!')
+                            viewEmployees()
+                        }
+                    })
+                })
+        })
+    })
 }
