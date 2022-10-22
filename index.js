@@ -190,7 +190,6 @@ function addEmployee() {
                         console.log(err)
                     }
                     else {
-                        console.log(newEmp)
                         console.log('added employee!')
                         viewEmployees()
                     }
