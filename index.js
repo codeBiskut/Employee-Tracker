@@ -77,7 +77,7 @@ CONCAT(mgr.first_name, " " , mgr.last_name) as manager
 FROM employee
 LEFT JOIN role ON role.id= employee.role_id
 LEFT JOIN department ON role.department_id=department.id
-LEFT JOIN employee as mgr ON employee.id =  mgr.manager_id
+LEFT JOIN employee as mgr ON employee.manager_id =  mgr.id
 `, (err, data) => {
         printTable(data)
         menu()
@@ -179,16 +179,12 @@ function addEmployee() {
 
             // prompt questions to add employee
             inquirer.prompt(employeeAddQuestions).then(employee => {
-                // const parameters=[response.first_name,response.last_name,response.role_id, response.manager_id]
-                // db.query("INSERT INTO employee (first_name,last_name,role_id,manager_id)VALUES(?,?,?,?)",parameters,(err, data)=>{
-
-                //     viewEmployees()
-                // })
-
-                console.log(employee.manager_id)
                 // create new employee with the selected manager
                 let newEmp = {
-                    ...employee,
+                    first_name:employee.first_name,
+                    last_name:employee.last_name,
+                    role_id:employee.role_id,
+                    manager_id:employee.manager_id
                 }
 
                 // add it
@@ -198,7 +194,7 @@ function addEmployee() {
                     }
                     else {
                         console.log(newEmp)
-                        console.log('added manager!')
+                        console.log('added employee!')
                         viewEmployees()
                     }
                 })
