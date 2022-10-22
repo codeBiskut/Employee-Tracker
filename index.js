@@ -2,9 +2,6 @@ const inquirer = require("inquirer")
 const db = require("./config/connection")
 const { printTable } = require("console-table-printer")
 
-// replace this with an npm package
-require("console.table")
-
 // run the menu on start
 db.connect(() => {
     menu()
